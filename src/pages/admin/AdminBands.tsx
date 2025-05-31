@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { bands as initialBands } from '../../data/bands';
+import { bands as initialBands, updateBands } from '../../data/bands';
 import BandModal from '../../components/modals/BandModal';
 import { Band } from '../../data/bands';
 
@@ -21,20 +21,27 @@ const AdminBands: React.FC = () => {
 
   const handleDeleteBand = (id: string) => {
     if (window.confirm('Are you sure you want to delete this band?')) {
-      setBands(bands.filter(band => band.id !== id));
+      const updatedBands = bands.filter(band => band.id !== id);
+      setBands(updatedBands);
+      updateBands(updatedBands);
     }
   };
 
   const handleSaveBand = (bandData: Partial<Band>) => {
+    let updatedBands: Band[];
+    
     if (editingBand) {
       // Update existing band
-      setBands(bands.map(band => 
+      updatedBands = bands.map(band => 
         band.id === editingBand.id ? { ...band, ...bandData } : band
-      ));
+      );
     } else {
       // Add new band
-      setBands([...bands, bandData as Band]);
+      updatedBands = [...bands, bandData as Band];
     }
+    
+    setBands(updatedBands);
+    updateBands(updatedBands);
     setIsModalOpen(false);
   };
 

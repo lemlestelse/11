@@ -11,7 +11,7 @@ export interface Band {
   featured?: boolean;
 }
 
-export const bands: Band[] = [
+let bands: Band[] = [
   {
     id: '1',
     name: 'Necropsyum',
@@ -54,7 +54,6 @@ export const bands: Band[] = [
     ],
     featured: true
   },
-
   {
     id: '3',
     name: 'Castrivenian',
@@ -110,3 +109,10 @@ export const bands: Band[] = [
     featured: true
   }
 ];
+
+// Function to update bands data
+export const updateBands = (newBands: Band[]) => {
+  bands = newBands;
+};
+
+export { bands };
