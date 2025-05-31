@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-NEXT_PUBLIC_SUPABASE_URL=https://vudlsrcnsjnwavcpwins.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZGxzcmNuc2pud2F2Y3B3aW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg3MTY0MjgsImV4cCI6MjA2NDI5MjQyOH0.8uVyxg8Ej__jIl78rR0tL9uLQZ1uMOW0-6vW9fxjnDI
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+import Database from 'better-sqlite3';
 
 export interface Band {
   id: string;
@@ -118,46 +113,39 @@ const defaultBands: Band[] = [
   }
 ];
 
-let bands: Band[] = [];
+// Initialize SQLite database
+const db = new Database('bands.db');
 
-// Initialize bands from Supabase
-const initializeBands = async () => {
-  const { data, error } = await supabase
-    .from('bands')
-    .select('*');
+// Create bands table if it doesn't exist
+db.exec(`
+  CREATE TABLE IF NOT EXISTS bands (
+    id TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  )
+`);
 
-  if (error || !data.length) {
-    // If no data exists in Supabase, initialize with default bands
-    const { error: insertError } = await supabase
-      .from('bands')
-      .insert(defaultBands);
-
-    if (!insertError) {
-      bands = defaultBands;
-    }
-  } else {
-    bands = data;
+// Initialize bands from SQLite
+const initializeBands = () => {
+  const existingBands = db.prepare('SELECT * FROM bands').all();
+  if (!existingBands.length) {
+    const insert = db.prepare('INSERT INTO bands (id, data) VALUES (?, ?)');
+    defaultBands.forEach(band => {
+      insert.run(band.id, JSON.stringify(band));
+    });
+    return defaultBands;
   }
+  return existingBands.map(row => JSON.parse(row.data));
 };
+
+let bands: Band[] = initializeBands();
 
 // Function to update bands data
-export const updateBands = async (newBands: Band[]) => {
-  try {
-    const { error } = await supabase
-      .from('bands')
-      .upsert(newBands);
-
-    if (!error) {
-      bands = newBands;
-    } else {
-      console.error('Error updating bands:', error);
-    }
-  } catch (error) {
-    console.error('Error updating bands:', error);
-  }
+export const updateBands = (newBands: Band[]) => {
+  const insert = db.prepare('INSERT OR REPLACE INTO bands (id, data) VALUES (?, ?)');
+  newBands.forEach(band => {
+    insert.run(band.id, JSON.stringify(band));
+  });
+  bands = newBands;
 };
-
-// Initialize bands when the module loads
-initializeBands();
 
 export { bands };
