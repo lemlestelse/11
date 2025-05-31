@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import { MongoClient, ObjectId } from 'mongodb';
 
 export interface Band {
   id: string;
@@ -113,39 +113,60 @@ const defaultBands: Band[] = [
   }
 ];
 
-// Initialize SQLite database
-const db = new Database('bands.db');
+// MongoDB connection string - Replace with your MongoDB Atlas connection string
+const uri = "mongodb+srv://your_username:your_password@your_cluster.mongodb.net/onlyhate?retryWrites=true&w=majority";
+const client = new MongoClient(uri);
+let bands: Band[] = [];
 
-// Create bands table if it doesn't exist
-db.exec(`
-  CREATE TABLE IF NOT EXISTS bands (
-    id TEXT PRIMARY KEY,
-    data TEXT NOT NULL
-  )
-`);
+// Initialize MongoDB connection and bands collection
+async function initializeBands() {
+  try {
+    await client.connect();
+    const database = client.db('onlyhate');
+    const collection = database.collection('bands');
 
-// Initialize bands from SQLite
-const initializeBands = () => {
-  const existingBands = db.prepare('SELECT * FROM bands').all();
-  if (!existingBands.length) {
-    const insert = db.prepare('INSERT INTO bands (id, data) VALUES (?, ?)');
-    defaultBands.forEach(band => {
-      insert.run(band.id, JSON.stringify(band));
-    });
-    return defaultBands;
+    // Check if collection is empty
+    const count = await collection.countDocuments();
+    if (count === 0) {
+      // Insert default bands if collection is empty
+      await collection.insertMany(defaultBands);
+    }
+
+    // Get all bands
+    const result = await collection.find({}).toArray();
+    bands = result.map(band => ({
+      ...band,
+      id: band._id.toString()
+    }));
+
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    // Fallback to default bands if connection fails
+    bands = defaultBands;
   }
-  return existingBands.map(row => JSON.parse(row.data));
-};
+}
 
-let bands: Band[] = initializeBands();
+// Initialize bands on module load
+initializeBands();
 
 // Function to update bands data
-export const updateBands = (newBands: Band[]) => {
-  const insert = db.prepare('INSERT OR REPLACE INTO bands (id, data) VALUES (?, ?)');
-  newBands.forEach(band => {
-    insert.run(band.id, JSON.stringify(band));
-  });
-  bands = newBands;
+export const updateBands = async (newBands: Band[]) => {
+  try {
+    const database = client.db('onlyhate');
+    const collection = database.collection('bands');
+
+    // Clear existing bands
+    await collection.deleteMany({});
+
+    // Insert new bands
+    await collection.insertMany(newBands);
+
+    // Update local bands array
+    bands = newBands;
+  } catch (error) {
+    console.error('Error updating bands:', error);
+    throw error;
+  }
 };
 
 export { bands };
