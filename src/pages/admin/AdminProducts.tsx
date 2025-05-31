@@ -4,9 +4,7 @@ import { products } from '../../data/products';
 import ProductModal from '../../components/modals/ProductModal';
 
 const AdminProducts: React.FC = () => {
-  const [isModalOpen, set
-
-IsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<typeof products[0] | null>(null);
 
   const handleAddProduct = () => {
@@ -122,4 +120,4 @@ IsModalOpen] = useState(false);
   );
 };
 
-export default AdminProducts
+export default AdminProducts;
