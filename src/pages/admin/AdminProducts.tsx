@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { products } from '../../data/products';
+import ProductModal from '../../components/modals/ProductModal';
 
 const AdminProducts: React.FC = () => {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, set
+
+IsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<typeof products[0] | null>(null);
 
   const handleAddProduct = () => {
-    setIsAddModalOpen(true);
+    setEditingProduct(null);
+    setIsModalOpen(true);
   };
 
   const handleEditProduct = (product: typeof products[0]) => {
     setEditingProduct(product);
-    setIsAddModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleDeleteProduct = (id: string) => {
@@ -20,6 +24,17 @@ const AdminProducts: React.FC = () => {
       // Implement delete functionality
       console.log('Deleting product:', id);
     }
+  };
+
+  const handleSaveProduct = (productData: Partial<typeof products[0]>) => {
+    if (editingProduct) {
+      // Update existing product
+      console.log('Updating product:', productData);
+    } else {
+      // Add new product
+      console.log('Adding new product:', productData);
+    }
+    setIsModalOpen(false);
   };
 
   return (
@@ -97,9 +112,12 @@ const AdminProducts: React.FC = () => {
         ))}
       </div>
 
-      {/* Add/Edit Modal would go here */}
+      <ProductModal
+        product={editingProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveProduct}
+      />
     </div>
   );
 };
-
-export default AdminProducts;

@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { bands } from '../../data/bands';
+import BandModal from '../../components/modals/BandModal';
 
 const AdminBands: React.FC = () => {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBand, setEditingBand] = useState<typeof bands[0] | null>(null);
 
   const handleAddBand = () => {
-    setIsAddModalOpen(true);
+    setEditingBand(null);
+    setIsModalOpen(true);
   };
 
   const handleEditBand = (band: typeof bands[0]) => {
     setEditingBand(band);
-    setIsAddModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleDeleteBand = (id: string) => {
@@ -20,6 +22,17 @@ const AdminBands: React.FC = () => {
       // Implement delete functionality
       console.log('Deleting band:', id);
     }
+  };
+
+  const handleSaveBand = (bandData: Partial<typeof bands[0]>) => {
+    if (editingBand) {
+      // Update existing band
+      console.log('Updating band:', bandData);
+    } else {
+      // Add new band
+      console.log('Adding new band:', bandData);
+    }
+    setIsModalOpen(false);
   };
 
   return (
@@ -87,9 +100,12 @@ const AdminBands: React.FC = () => {
         ))}
       </div>
 
-      {/* Add/Edit Modal would go here */}
+      <BandModal
+        band={editingBand}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveBand}
+      />
     </div>
   );
 };
-
-export default AdminBands;

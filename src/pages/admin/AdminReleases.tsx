@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { releases } from '../../data/releases';
+import ReleaseModal from '../../components/modals/ReleaseModal';
 
 const AdminReleases: React.FC = () => {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState<typeof releases[0] | null>(null);
 
   const handleAddRelease = () => {
-    setIsAddModalOpen(true);
+    setEditingRelease(null);
+    setIsModalOpen(true);
   };
 
   const handleEditRelease = (release: typeof releases[0]) => {
     setEditingRelease(release);
-    setIsAddModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleDeleteRelease = (id: string) => {
@@ -20,6 +22,17 @@ const AdminReleases: React.FC = () => {
       // Implement delete functionality
       console.log('Deleting release:', id);
     }
+  };
+
+  const handleSaveRelease = (releaseData: Partial<typeof releases[0]>) => {
+    if (editingRelease) {
+      // Update existing release
+      console.log('Updating release:', releaseData);
+    } else {
+      // Add new release
+      console.log('Adding new release:', releaseData);
+    }
+    setIsModalOpen(false);
   };
 
   return (
@@ -93,9 +106,12 @@ const AdminReleases: React.FC = () => {
         ))}
       </div>
 
-      {/* Add/Edit Modal would go here */}
+      <ReleaseModal
+        release={editingRelease}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveRelease}
+      />
     </div>
   );
 };
-
-export default AdminReleases;
