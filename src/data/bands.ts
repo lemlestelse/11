@@ -1,5 +1,3 @@
-import { MongoClient, ObjectId } from 'mongodb';
-
 export interface Band {
   id: string;
   name: string;
@@ -14,7 +12,7 @@ export interface Band {
 }
 
 // Default bands data
-const defaultBands: Band[] = [
+const bands: Band[] = [
   {
     id: '1',
     name: 'Necropsyum',
@@ -112,61 +110,5 @@ const defaultBands: Band[] = [
     featured: true
   }
 ];
-
-// MongoDB connection string - Replace with your MongoDB Atlas connection string
-const uri = "mongodb+srv://your_username:your_password@your_cluster.mongodb.net/onlyhate?retryWrites=true&w=majority";
-const client = new MongoClient(uri);
-let bands: Band[] = [];
-
-// Initialize MongoDB connection and bands collection
-async function initializeBands() {
-  try {
-    await client.connect();
-    const database = client.db('onlyhate');
-    const collection = database.collection('bands');
-
-    // Check if collection is empty
-    const count = await collection.countDocuments();
-    if (count === 0) {
-      // Insert default bands if collection is empty
-      await collection.insertMany(defaultBands);
-    }
-
-    // Get all bands
-    const result = await collection.find({}).toArray();
-    bands = result.map(band => ({
-      ...band,
-      id: band._id.toString()
-    }));
-
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    // Fallback to default bands if connection fails
-    bands = defaultBands;
-  }
-}
-
-// Initialize bands on module load
-initializeBands();
-
-// Function to update bands data
-export const updateBands = async (newBands: Band[]) => {
-  try {
-    const database = client.db('onlyhate');
-    const collection = database.collection('bands');
-
-    // Clear existing bands
-    await collection.deleteMany({});
-
-    // Insert new bands
-    await collection.insertMany(newBands);
-
-    // Update local bands array
-    bands = newBands;
-  } catch (error) {
-    console.error('Error updating bands:', error);
-    throw error;
-  }
-};
 
 export { bands };
