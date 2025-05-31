@@ -1,36 +1,39 @@
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { bands } from '../../data/bands';
+import { bands as initialBands } from '../../data/bands';
 import BandModal from '../../components/modals/BandModal';
+import { Band } from '../../data/bands';
 
 const AdminBands: React.FC = () => {
+  const [bands, setBands] = useState<Band[]>(initialBands);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBand, setEditingBand] = useState<typeof bands[0] | null>(null);
+  const [editingBand, setEditingBand] = useState<Band | null>(null);
 
   const handleAddBand = () => {
     setEditingBand(null);
     setIsModalOpen(true);
   };
 
-  const handleEditBand = (band: typeof bands[0]) => {
+  const handleEditBand = (band: Band) => {
     setEditingBand(band);
     setIsModalOpen(true);
   };
 
   const handleDeleteBand = (id: string) => {
     if (window.confirm('Are you sure you want to delete this band?')) {
-      // Implement delete functionality
-      console.log('Deleting band:', id);
+      setBands(bands.filter(band => band.id !== id));
     }
   };
 
-  const handleSaveBand = (bandData: Partial<typeof bands[0]>) => {
+  const handleSaveBand = (bandData: Partial<Band>) => {
     if (editingBand) {
       // Update existing band
-      console.log('Updating band:', bandData);
+      setBands(bands.map(band => 
+        band.id === editingBand.id ? { ...band, ...bandData } : band
+      ));
     } else {
       // Add new band
-      console.log('Adding new band:', bandData);
+      setBands([...bands, bandData as Band]);
     }
     setIsModalOpen(false);
   };
@@ -110,4 +113,4 @@ const AdminBands: React.FC = () => {
   );
 };
 
-export default AdminBands
+export default AdminBands;

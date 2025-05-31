@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { Band } from '../../data/bands';
 
 interface BandModalProps {
@@ -16,6 +16,7 @@ const BandModal: React.FC<BandModalProps> = ({ band, isOpen, onClose, onSave }) 
       country: '',
       formedIn: new Date().getFullYear(),
       genres: [],
+      image: '',
       bio: '',
       members: [],
       discography: [],
@@ -25,7 +26,19 @@ const BandModal: React.FC<BandModalProps> = ({ band, isOpen, onClose, onSave }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    // Generate a unique ID if it's a new band
+    if (!band) {
+      const newBand = {
+        ...formData,
+        id: Math.random().toString(36).substr(2, 9),
+        // If no image was uploaded, use a default one
+        image: formData.image || 'https://images.pexels.com/photos/167491/pexels-photo-167491.jpeg'
+      };
+      onSave(newBand);
+    } else {
+      onSave(formData);
+    }
+    onClose();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -34,6 +47,16 @@ const BandModal: React.FC<BandModalProps> = ({ band, isOpen, onClose, onSave }) 
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // In a real app, you would upload this to a server
+      // For now, we'll use a URL.createObjectURL as a placeholder
+      const imageUrl = URL.createObjectURL(file);
+      setFormData(prev => ({ ...prev, image: imageUrl }));
+    }
   };
 
   const handleGenreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,6 +100,41 @@ const BandModal: React.FC<BandModalProps> = ({ band, isOpen, onClose, onSave }) 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-grimdark-300 mb-1">Band Logo/Image *</label>
+            <div className="border-2 border-dashed border-blackmetal-600 p-4 text-center">
+              {formData.image ? (
+                <div className="relative">
+                  <img
+                    src={formData.image}
+                    alt="Band logo preview"
+                    className="max-h-48 mx-auto"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                    className="absolute top-0 right-0 bg-blood-red text-white p-1 rounded-full"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <label className="cursor-pointer block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center text-grimdark-300">
+                    <Upload size={24} className="mb-2" />
+                    <span>Click to upload band logo/image</span>
+                  </div>
+                </label>
+              )}
+            </div>
+          </div>
+
           <div>
             <label className="block text-grimdark-300 mb-1">Band Name *</label>
             <input
