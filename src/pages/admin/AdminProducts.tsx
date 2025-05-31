@@ -121,3 +121,5 @@ IsModalOpen] = useState(false);
     </div>
   );
 };
+
+export default AdminProducts

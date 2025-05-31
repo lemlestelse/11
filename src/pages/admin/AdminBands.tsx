@@ -109,3 +109,5 @@ const AdminBands: React.FC = () => {
     </div>
   );
 };
+
+export default AdminBands

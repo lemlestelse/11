@@ -115,3 +115,5 @@ const AdminReleases: React.FC = () => {
     </div>
   );
 };
+
+export default AdminReleases
