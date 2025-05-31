@@ -1,18 +1,9 @@
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, get, set, onValue } from 'firebase/database';
+import { createClient } from '@supabase/supabase-js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyApa0ll6QvjZlZt3wodPVCXvjdQ49UxwKA",
-  authDomain: "onlyhatepropaganda-e6e78.firebaseapp.com",
-  databaseURL: "https://onlyhatepropaganda-e6e78-default-rtdb.firebaseio.com",
-  projectId: "onlyhatepropaganda-e6e78",
-  storageBucket: "onlyhatepropaganda-e6e78.firebasestorage.app",
-  messagingSenderId: "128634877550",
-  appId: "1:128634877550:web:37c7aaf41cc5e4edcd987f"
-};
+const supabaseUrl = 'https://your-project-url.supabase.co';
+const supabaseKey = 'your-anon-key';
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface Band {
   id: string;
@@ -129,27 +120,44 @@ const defaultBands: Band[] = [
 
 let bands: Band[] = [];
 
-// Initialize bands from Firebase
-const bandsRef = ref(db, 'bands');
-onValue(bandsRef, (snapshot) => {
-  const data = snapshot.val();
-  if (!data) {
-    // If no data exists in Firebase, initialize with default bands
-    set(bandsRef, defaultBands);
-    bands = defaultBands;
+// Initialize bands from Supabase
+const initializeBands = async () => {
+  const { data, error } = await supabase
+    .from('bands')
+    .select('*');
+
+  if (error || !data.length) {
+    // If no data exists in Supabase, initialize with default bands
+    const { error: insertError } = await supabase
+      .from('bands')
+      .insert(defaultBands);
+
+    if (!insertError) {
+      bands = defaultBands;
+    }
   } else {
-    bands = Object.values(data);
+    bands = data;
   }
-});
+};
 
 // Function to update bands data
 export const updateBands = async (newBands: Band[]) => {
   try {
-    await set(bandsRef, newBands);
-    bands = newBands;
+    const { error } = await supabase
+      .from('bands')
+      .upsert(newBands);
+
+    if (!error) {
+      bands = newBands;
+    } else {
+      console.error('Error updating bands:', error);
+    }
   } catch (error) {
     console.error('Error updating bands:', error);
   }
 };
+
+// Initialize bands when the module loads
+initializeBands();
 
 export { bands };
